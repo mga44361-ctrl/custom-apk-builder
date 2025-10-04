@@ -20,28 +20,8 @@ interface Client {
   lastSeen: string;
 }
 
-// Sample data
-const sampleClients: Client[] = [
-  {
-    id: "1",
-    name: "أحمد محمد",
-    email: "ahmed@example.com",
-    device: "Samsung Galaxy S21",
-    apps: ["App1", "App2"],
-    lastSeen: "2025-01-10 14:30"
-  },
-  {
-    id: "2",
-    name: "فاطمة علي",
-    email: "fatima@example.com",
-    device: "Xiaomi Redmi Note 10",
-    apps: ["App1"],
-    lastSeen: "2025-01-09 10:15"
-  },
-];
-
 export default function Clients({ language }: ClientsProps) {
-  const [clients] = useState<Client[]>(sampleClients);
+  const [clients] = useState<Client[]>([]);
   const [filter, setFilter] = useState("");
 
   const filteredClients = clients.filter(c => 
