@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BuildAPKProps {
@@ -35,10 +36,174 @@ const permissions = [
   "Contacts", "Bluetooth", "Microphone", "Phone", "Calendar"
 ];
 
+const templates = [
+  {
+    id: "youtube",
+    nameAr: "يوتيوب",
+    nameEn: "YouTube",
+    icon: "🎥",
+    data: {
+      packageName: "com.youtube.app",
+      versionName: "1.0.0",
+      appLabel: "YouTube",
+      domain: "youtube.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://m.youtube.com",
+      welcomeText: "Welcome to YouTube",
+      apkSize: "normal",
+      theme: "dark",
+      splashDuration: "3",
+      permissions: ["Camera", "Microphone", "Storage"],
+    }
+  },
+  {
+    id: "google",
+    nameAr: "جوجل",
+    nameEn: "Google",
+    icon: "🔍",
+    data: {
+      packageName: "com.google.app",
+      versionName: "1.0.0",
+      appLabel: "Google",
+      domain: "google.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://www.google.com",
+      welcomeText: "Welcome to Google",
+      apkSize: "compressed",
+      theme: "light",
+      splashDuration: "2",
+      permissions: ["Location", "Microphone"],
+    }
+  },
+  {
+    id: "facebook",
+    nameAr: "فيسبوك",
+    nameEn: "Facebook",
+    icon: "📘",
+    data: {
+      packageName: "com.facebook.app",
+      versionName: "1.0.0",
+      appLabel: "Facebook",
+      domain: "facebook.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://m.facebook.com",
+      welcomeText: "Welcome to Facebook",
+      apkSize: "normal",
+      theme: "auto",
+      splashDuration: "2",
+      permissions: ["Camera", "Location", "Storage", "Microphone"],
+    }
+  },
+  {
+    id: "instagram",
+    nameAr: "إنستجرام",
+    nameEn: "Instagram",
+    icon: "📸",
+    data: {
+      packageName: "com.instagram.app",
+      versionName: "1.0.0",
+      appLabel: "Instagram",
+      domain: "instagram.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://www.instagram.com",
+      welcomeText: "Welcome to Instagram",
+      apkSize: "normal",
+      theme: "auto",
+      splashDuration: "2",
+      permissions: ["Camera", "Storage", "Location"],
+    }
+  },
+  {
+    id: "twitter",
+    nameAr: "تويتر (X)",
+    nameEn: "Twitter (X)",
+    icon: "🐦",
+    data: {
+      packageName: "com.twitter.app",
+      versionName: "1.0.0",
+      appLabel: "Twitter",
+      domain: "twitter.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://mobile.twitter.com",
+      welcomeText: "Welcome to Twitter",
+      apkSize: "compressed",
+      theme: "dark",
+      splashDuration: "2",
+      permissions: ["Camera", "Location", "Storage"],
+    }
+  },
+  {
+    id: "whatsapp",
+    nameAr: "واتساب",
+    nameEn: "WhatsApp",
+    icon: "💬",
+    data: {
+      packageName: "com.whatsapp.app",
+      versionName: "1.0.0",
+      appLabel: "WhatsApp",
+      domain: "web.whatsapp.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://web.whatsapp.com",
+      welcomeText: "Welcome to WhatsApp",
+      apkSize: "normal",
+      theme: "light",
+      splashDuration: "3",
+      permissions: ["Camera", "Microphone", "Storage", "Contacts"],
+    }
+  },
+  {
+    id: "tiktok",
+    nameAr: "تيك توك",
+    nameEn: "TikTok",
+    icon: "🎵",
+    data: {
+      packageName: "com.tiktok.app",
+      versionName: "1.0.0",
+      appLabel: "TikTok",
+      domain: "tiktok.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://www.tiktok.com",
+      welcomeText: "Welcome to TikTok",
+      apkSize: "normal",
+      theme: "dark",
+      splashDuration: "2",
+      permissions: ["Camera", "Microphone", "Storage"],
+    }
+  },
+  {
+    id: "netflix",
+    nameAr: "نتفلكس",
+    nameEn: "Netflix",
+    icon: "🎬",
+    data: {
+      packageName: "com.netflix.app",
+      versionName: "1.0.0",
+      appLabel: "Netflix",
+      domain: "netflix.com",
+      port: "443",
+      uiType: "webview",
+      webUrl: "https://www.netflix.com",
+      welcomeText: "Welcome to Netflix",
+      apkSize: "normal",
+      theme: "dark",
+      splashDuration: "3",
+      permissions: ["Storage"],
+    }
+  },
+];
+
 export default function BuildAPK({ language }: BuildAPKProps) {
   const [step, setStep] = useState(1);
   const [building, setBuilding] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [data, setData] = useState<BuildData>({
     packageName: "",
     versionName: "1.0.0",
@@ -53,6 +218,16 @@ export default function BuildAPK({ language }: BuildAPKProps) {
     splashDuration: "2",
     permissions: [],
   });
+
+  const applyTemplate = (template: typeof templates[0]) => {
+    setData(template.data);
+    setTemplatesOpen(false);
+    toast.success(
+      language === "ar" 
+        ? `تم تطبيق قالب ${template.nameAr}` 
+        : `${template.nameEn} template applied`
+    );
+  };
 
   const updateData = (field: keyof BuildData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -169,6 +344,51 @@ export default function BuildAPK({ language }: BuildAPKProps) {
 
   return (
     <div className="space-y-6 max-w-5xl">
+      {/* Templates Button */}
+      <div className="flex justify-end">
+        <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              {language === "ar" ? "القوالب الجاهزة" : "Templates"}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {language === "ar" ? "القوالب الجاهزة" : "Ready Templates"}
+              </DialogTitle>
+              <DialogDescription>
+                {language === "ar" 
+                  ? "اختر قالباً جاهزاً لملء البيانات تلقائياً" 
+                  : "Choose a ready template to auto-fill the data"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              {templates.map((template) => (
+                <Card
+                  key={template.id}
+                  className="p-4 cursor-pointer hover:border-primary transition-all"
+                  onClick={() => applyTemplate(template)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl">{template.icon}</div>
+                    <div>
+                      <h4 className="font-semibold">
+                        {language === "ar" ? template.nameAr : template.nameEn}
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {template.data.packageName}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       {/* Stepper */}
       <div className="grid grid-cols-3 gap-4">
         {steps.map((s) => (
