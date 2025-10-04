@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -200,9 +201,9 @@ const templates = [
 ];
 
 export default function BuildAPK({ language }: BuildAPKProps) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [building, setBuilding] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [data, setData] = useState<BuildData>({
     packageName: "",
@@ -244,7 +245,6 @@ export default function BuildAPK({ language }: BuildAPKProps) {
 
   const handleBuild = async () => {
     setBuilding(true);
-    setProgress(0);
 
     try {
       // Check authentication
@@ -281,53 +281,9 @@ export default function BuildAPK({ language }: BuildAPKProps) {
       }
 
       toast.success(language === "ar" ? "تم بدء عملية البناء!" : "Build started!");
-
-      // Simulate progress for better UX
-      const interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(interval);
-            return 90;
-          }
-          return prev + Math.random() * 10;
-        });
-      }, 1000);
-
-      // Poll for build completion
-      const checkBuildStatus = setInterval(async () => {
-        const { data: builds } = await supabase
-          .from('apk_builds')
-          .select('*')
-          .eq('id', result.buildId)
-          .single();
-
-        if (builds?.status === 'completed') {
-          clearInterval(checkBuildStatus);
-          clearInterval(interval);
-          setProgress(100);
-          setBuilding(false);
-          toast.success(language === "ar" ? "تم بناء APK بنجاح!" : "APK built successfully!");
-          
-          if (builds.download_url) {
-            window.open(builds.download_url, '_blank');
-          }
-        } else if (builds?.status === 'failed') {
-          clearInterval(checkBuildStatus);
-          clearInterval(interval);
-          setBuilding(false);
-          toast.error(builds.error_message || (language === "ar" ? "فشل البناء" : "Build failed"));
-        }
-      }, 3000);
-
-      // Cleanup after 5 minutes
-      setTimeout(() => {
-        clearInterval(checkBuildStatus);
-        clearInterval(interval);
-        if (building) {
-          setBuilding(false);
-          toast.error(language === "ar" ? "انتهت مهلة البناء" : "Build timeout");
-        }
-      }, 300000);
+      
+      // Navigate to build progress page
+      navigate(`/build-progress?id=${result.buildId}`);
 
     } catch (error) {
       console.error('Build error:', error);
@@ -599,12 +555,11 @@ export default function BuildAPK({ language }: BuildAPKProps) {
           )}
         </div>
 
-        {/* Build Progress */}
+        {/* Building Indicator */}
         {building && (
-          <div className="mt-6 space-y-2">
-            <Progress value={progress} />
-            <p className="text-sm text-muted-foreground text-center">
-              {language === "ar" ? "جاري البناء..." : "Building..."} {Math.round(progress)}%
+          <div className="mt-6 space-y-2 text-center">
+            <p className="text-sm text-muted-foreground">
+              {language === "ar" ? "جاري تحويلك إلى شاشة البناء..." : "Redirecting to build screen..."}
             </p>
           </div>
         )}
