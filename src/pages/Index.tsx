@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import RepairModal from "@/components/RepairModal";
 import Repair from "@/pages/Repair";
 import BuildAPK from "@/pages/BuildAPK";
+import BuildHistory from "@/pages/BuildHistory";
 import ServerSettings from "@/pages/ServerSettings";
 import APKInjection from "@/pages/APKInjection";
 import Clients from "@/pages/Clients";
@@ -18,6 +19,8 @@ const Index = () => {
         return <Repair language={language} onOpenRepair={() => setRepairModalOpen(true)} />;
       case "build":
         return <BuildAPK language={language} />;
+      case "history":
+        return <BuildHistory language={language} />;
       case "server":
         return <ServerSettings language={language} />;
       case "inject":

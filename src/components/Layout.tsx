@@ -8,7 +8,8 @@ import {
   Syringe, 
   Users,
   Menu,
-  X
+  X,
+  History
 } from "lucide-react";
 
 interface LayoutProps {
@@ -23,6 +24,7 @@ interface LayoutProps {
 const navItems = [
   { id: "repair", icon: Wrench, labelAr: "إصلاح", labelEn: "Repair" },
   { id: "build", icon: Package, labelAr: "بناء APK", labelEn: "Build APK" },
+  { id: "history", icon: History, labelAr: "سجل البناءات", labelEn: "Build History" },
   { id: "server", icon: Server, labelAr: "إعدادات الخادم", labelEn: "Server Settings" },
   { id: "inject", icon: Syringe, labelAr: "حقن APK", labelEn: "APK Injection" },
   { id: "clients", icon: Users, labelAr: "العملاء", labelEn: "Clients" },
