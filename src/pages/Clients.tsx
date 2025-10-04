@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Download, MoreVertical, FolderOpen, Archive, Ungroup, Users, MessageSquare, ScreenShare } from "lucide-react";
 import { toast } from "sonner";
 
 interface ClientsProps {
@@ -75,6 +76,24 @@ export default function Clients({ language }: ClientsProps) {
     toast.info(language === "ar" ? "سيتم دعم XLSX قريباً" : "XLSX support coming soon");
   };
 
+  const handleClientAction = (action: string, clientName: string) => {
+    const actions: Record<string, { ar: string; en: string }> = {
+      files: { ar: "فتح الملفات", en: "Open Files" },
+      zip: { ar: "ضغط الملفات", en: "Zip Files" },
+      unzip: { ar: "فك الضغط", en: "Unzip Files" },
+      contacts: { ar: "جهات الاتصال", en: "Contacts" },
+      messages: { ar: "الرسائل", en: "Messages" },
+      screen: { ar: "مشاركة الشاشة", en: "Screen Share" },
+    };
+    
+    const actionName = actions[action];
+    toast.success(
+      language === "ar" 
+        ? `${actionName.ar} - ${clientName}` 
+        : `${actionName.en} - ${clientName}`
+    );
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
@@ -110,6 +129,7 @@ export default function Clients({ language }: ClientsProps) {
                 <TableHead>{language === "ar" ? "الجهاز" : "Device"}</TableHead>
                 <TableHead>{language === "ar" ? "التطبيقات" : "Apps"}</TableHead>
                 <TableHead>{language === "ar" ? "آخر اتصال" : "Last Seen"}</TableHead>
+                <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,11 +142,46 @@ export default function Clients({ language }: ClientsProps) {
                     <TableCell>{client.device}</TableCell>
                     <TableCell>{client.apps.join(", ")}</TableCell>
                     <TableCell className="text-muted-foreground">{client.lastSeen}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={() => handleClientAction('files', client.name)} className="gap-2">
+                            <FolderOpen className="h-4 w-4" />
+                            {language === "ar" ? "الملفات" : "Files"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleClientAction('zip', client.name)} className="gap-2">
+                            <Archive className="h-4 w-4" />
+                            {language === "ar" ? "ضغط الملفات (Zip)" : "Zip Files"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleClientAction('unzip', client.name)} className="gap-2">
+                            <Ungroup className="h-4 w-4" />
+                            {language === "ar" ? "فك الضغط (Unzip)" : "Unzip Files"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleClientAction('contacts', client.name)} className="gap-2">
+                            <Users className="h-4 w-4" />
+                            {language === "ar" ? "جهات الاتصال" : "Contacts"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleClientAction('messages', client.name)} className="gap-2">
+                            <MessageSquare className="h-4 w-4" />
+                            {language === "ar" ? "الرسائل" : "Messages"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleClientAction('screen', client.name)} className="gap-2">
+                            <ScreenShare className="h-4 w-4" />
+                            {language === "ar" ? "مشاركة الشاشة" : "Screen Share"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     {language === "ar" ? "لا توجد بيانات" : "No data"}
                   </TableCell>
                 </TableRow>
