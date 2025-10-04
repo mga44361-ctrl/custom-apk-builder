@@ -99,14 +99,34 @@ serve(async (req) => {
             .eq('id', build.id);
         }
 
+        // Create a dummy APK file (in production, this would be the actual built APK)
+        const dummyApkContent = new TextEncoder().encode(
+          `APK Build ${build.id}\nApp: ${buildData.appName}\nPackage: ${buildData.packageName}\nVersion: ${buildData.version}`
+        );
+        
+        // Upload the file to storage
+        const filePath = `${build.id}.apk`;
+        const { error: uploadError } = await supabaseClient.storage
+          .from('apk-builds')
+          .upload(filePath, dummyApkContent, {
+            contentType: 'application/vnd.android.package-archive',
+            upsert: true
+          });
+
+        if (uploadError) {
+          throw new Error(`Failed to upload APK: ${uploadError.message}`);
+        }
+
         // Generate download URL for the built APK
-        const downloadUrl = `${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/apk-builds/${build.id}.apk`;
+        const { data: urlData } = supabaseClient.storage
+          .from('apk-builds')
+          .getPublicUrl(filePath);
         
         await supabaseClient
           .from('apk_builds')
           .update({ 
             status: 'completed',
-            download_url: downloadUrl 
+            download_url: urlData.publicUrl 
           })
           .eq('id', build.id);
 
