@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { WebViewTemplate, TabsTemplate, DrawerTemplate, OnboardingTemplate } from "@/components/templates";
 
 interface BuildAPKProps {
   language: string;
@@ -495,6 +496,65 @@ export default function BuildAPK({ language }: BuildAPKProps) {
                   onChange={(e) => updateData("splashDuration", e.target.value)}
                   placeholder="2" 
                 />
+              </div>
+
+              {/* Template Components Preview */}
+              <div className="mt-6 space-y-2">
+                <Label>{language === "ar" ? "مكونات القوالب" : "Template Components"}</Label>
+                <div className="grid md:grid-cols-4 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => updateData("uiType", "webview")}
+                    className={cn(
+                      "p-2 rounded-xl border transition-all hover:border-primary",
+                      data.uiType === "webview" ? "border-primary ring-1 ring-primary/30" : "border-border"
+                    )}
+                    aria-label="WebView"
+                  >
+                    <WebViewTemplate />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateData("uiType", "tabs")}
+                    className={cn(
+                      "p-2 rounded-xl border transition-all hover:border-primary",
+                      data.uiType === "tabs" ? "border-primary ring-1 ring-primary/30" : "border-border"
+                    )}
+                    aria-label="Tabs"
+                  >
+                    <TabsTemplate />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateData("uiType", "drawer")}
+                    className={cn(
+                      "p-2 rounded-xl border transition-all hover:border-primary",
+                      data.uiType === "drawer" ? "border-primary ring-1 ring-primary/30" : "border-border"
+                    )}
+                    aria-label="Drawer"
+                  >
+                    <DrawerTemplate />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateData("uiType", "onboarding")}
+                    className={cn(
+                      "p-2 rounded-xl border transition-all hover:border-primary",
+                      data.uiType === "onboarding" ? "border-primary ring-1 ring-primary/30" : "border-border"
+                    )}
+                    aria-label="Onboarding"
+                  >
+                    <OnboardingTemplate />
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {language === "ar" 
+                    ? "هذه معاينات حقيقية للواجهات التي سيتم تضمينها داخل التطبيق."
+                    : "These are real previews of the UI templates that will be included in the app."}
+                </p>
               </div>
             </div>
           </div>
