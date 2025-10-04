@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BuildAPKProps {
   language: string;
@@ -70,28 +71,94 @@ export default function BuildAPK({ language }: BuildAPKProps) {
     setBuilding(true);
     setProgress(0);
 
-    // Simulate build process
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
+    try {
+      // Check authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error(language === "ar" ? "يجب تسجيل الدخول أولاً" : "Please login first");
+        setBuilding(false);
+        return;
+      }
+
+      // Call backend to start build process
+      const { data: result, error } = await supabase.functions.invoke('build-apk', {
+        body: {
+          appName: data.appLabel,
+          packageName: data.packageName,
+          version: data.versionName,
+          domain: data.domain,
+          port: data.port,
+          uiType: data.uiType,
+          webUrl: data.webUrl,
+          welcomeText: data.welcomeText,
+          apkSize: data.apkSize,
+          theme: data.theme,
+          splashDuration: data.splashDuration,
+          permissions: data.permissions,
+        }
+      });
+
+      if (error) {
+        console.error('Build error:', error);
+        toast.error(language === "ar" ? "فشل في بدء البناء" : "Failed to start build");
+        setBuilding(false);
+        return;
+      }
+
+      toast.success(language === "ar" ? "تم بدء عملية البناء!" : "Build started!");
+
+      // Simulate progress for better UX
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(interval);
+            return 90;
+          }
+          return prev + Math.random() * 10;
+        });
+      }, 1000);
+
+      // Poll for build completion
+      const checkBuildStatus = setInterval(async () => {
+        const { data: builds } = await supabase
+          .from('apk_builds')
+          .select('*')
+          .eq('id', result.buildId)
+          .single();
+
+        if (builds?.status === 'completed') {
+          clearInterval(checkBuildStatus);
           clearInterval(interval);
+          setProgress(100);
           setBuilding(false);
           toast.success(language === "ar" ? "تم بناء APK بنجاح!" : "APK built successfully!");
           
-          // Create a dummy APK file
-          const blob = new Blob(["APK Content"], { type: "application/vnd.android.package-archive" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `${data.appLabel || "app"}-release.apk`;
-          a.click();
-          URL.revokeObjectURL(url);
-          
-          return 100;
+          if (builds.download_url) {
+            window.open(builds.download_url, '_blank');
+          }
+        } else if (builds?.status === 'failed') {
+          clearInterval(checkBuildStatus);
+          clearInterval(interval);
+          setBuilding(false);
+          toast.error(builds.error_message || (language === "ar" ? "فشل البناء" : "Build failed"));
         }
-        return prev + Math.random() * 15;
-      });
-    }, 400);
+      }, 3000);
+
+      // Cleanup after 5 minutes
+      setTimeout(() => {
+        clearInterval(checkBuildStatus);
+        clearInterval(interval);
+        if (building) {
+          setBuilding(false);
+          toast.error(language === "ar" ? "انتهت مهلة البناء" : "Build timeout");
+        }
+      }, 300000);
+
+    } catch (error) {
+      console.error('Build error:', error);
+      toast.error(language === "ar" ? "حدث خطأ أثناء البناء" : "An error occurred during build");
+      setBuilding(false);
+    }
   };
 
   const steps = [

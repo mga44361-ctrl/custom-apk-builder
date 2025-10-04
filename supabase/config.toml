@@ -1,1 +1,4 @@
 project_id = "rnivzruzvyyuneqrwqgi"
+
+[functions.build-apk]
+verify_jwt = true
