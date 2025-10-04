@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
@@ -9,8 +11,10 @@ import {
   Users,
   Menu,
   X,
-  History
+  History,
+  LogOut
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -39,6 +43,25 @@ export default function Layout({
   onLanguageChange 
 }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "خطأ",
+        description: "فشل تسجيل الخروج",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل خروجك بنجاح",
+      });
+      navigate("/auth");
+    }
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -126,7 +149,15 @@ export default function Layout({
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-3">
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            {language === "ar" ? "تسجيل الخروج" : "Logout"}
+          </Button>
           <p className="text-xs text-muted-foreground">
             v1.0.0 • Siyanet Tech Platform
           </p>
